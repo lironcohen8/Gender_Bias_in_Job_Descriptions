@@ -1,6 +1,7 @@
 import pandas as pd
 import spacy
 import difflib
+spacy.cli.download("en_core_web_lg")
 
 # load the spaCy model
 nlp = spacy.load("en_core_web_lg")
@@ -8,7 +9,7 @@ nlp = spacy.load("en_core_web_lg")
 # read in the job descriptions excel
 df = pd.read_excel("job_descriptions_2.xlsx")
 
-# read in the biased keyphrases excel
+# read in the biased phrases excel
 bias_df = pd.read_excel("biased_keywords.xlsx")
 
 # create a set of all biased phrases (exact matches)
@@ -25,6 +26,7 @@ for index, row in bias_df.iterrows():
         else:
             similar_biased_phrases[category].append(phrase)
 
+
 # define a function to check if a description contains any biased phrases (exact or similar matches)
 def check_for_bias(description):
     doc = nlp(description.lower())
@@ -32,7 +34,7 @@ def check_for_bias(description):
     for token in doc:
         token_matches = {'phrase': token.text, 'category': None, 'original': True}
         if token.text in exact_biased_phrases:
-            token_matches['category'] = bias_df[bias_df['phrase']==token.text]['category'].values[0]
+            token_matches['category'] = bias_df[bias_df['phrase'] == token.text]['category'].values[0]
             matches.append(token_matches)
         else:
             for category in similar_biased_phrases:
@@ -43,6 +45,7 @@ def check_for_bias(description):
                     token_matches['original'] = False
                     matches.append(token_matches)
     return matches
+
 
 # create a new column in the job descriptions excel indicating which biased phrases are present
 df['biased_phrases'] = df['description'].apply(check_for_bias)
@@ -68,7 +71,7 @@ for phrase in counts:
 # create a new dataframe to store the results
 results_df = pd.DataFrame.from_dict(counts, orient='index', columns=['count', 'percent', 'category', 'original'])
 
-# save the results to a new excel file
+# save the results to a new Excel file
 results_df.to_excel("bias_analysis_results.xlsx")
 
 print("Results saved to bias_analysis_results.xlsx")
