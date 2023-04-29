@@ -1,10 +1,21 @@
 import pandas as pd
 import spacy
 import difflib
-spacy.cli.download("en_core_web_lg")
+import nltk
+from nltk.corpus import stopwords
 
-# load the spaCy model
-nlp = spacy.load("en_core_web_lg")
+try:
+    nlp = spacy.load("en_core_web_lg")
+except:
+    spacy.cli.download("en_core_web_lg")
+    nlp = spacy.load("en_core_web_lg")
+
+STOPWORDS = {}
+try:
+    STOPWORDS = set(stopwords.words('english'))
+except:
+    nltk.download("stopwords")
+    STOPWORDS = set(stopwords.words('english'))
 
 # read in the job descriptions excel
 df = pd.read_excel("job_descriptions_2.xlsx")
