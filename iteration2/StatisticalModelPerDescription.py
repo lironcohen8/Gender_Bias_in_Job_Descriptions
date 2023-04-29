@@ -40,7 +40,7 @@ def get_job_desc_statistics_for_biased_phrases(description):
         if phrase.lower() in description:
             category = bias_df[bias_df['phrase'] == phrase]['category'].values[0]  # very inefficient
             matches[category].append(phrase)
-        else:  # elif category != 'advantage':  # we want exact match for advantage
+        else:
             closest_match = difflib.get_close_matches(phrase, desc_tokens, n=1, cutoff=0.8)
             if closest_match and closest_match[0] not in STOPWORDS:
                 matches['nlp_phrases'].append(closest_match[0])
@@ -60,6 +60,7 @@ def get_statistics_for_biased_phrases():
     for index, row in df.iterrows():
         description = row['description']
 
+        # get matches per category
         skills_phrases = set(row['matches']['skills'])
         work_env_phrases = set(row['matches']['work_env'])
         coding_lang_phrases = set(row['matches']['coding_lang'])
@@ -69,6 +70,7 @@ def get_statistics_for_biased_phrases():
         disclaimer_phrases = set(row['matches']['disclaimer'])
         nlp_phrases = set(row['matches']['nlp_phrases'])
 
+        # we want the additional nlp phrases to be different from any exact match
         nlp_phrases -= skills_phrases
         nlp_phrases -= work_env_phrases
         nlp_phrases -= coding_lang_phrases
@@ -77,6 +79,7 @@ def get_statistics_for_biased_phrases():
         nlp_phrases -= advantage_phrases
         nlp_phrases -= disclaimer_phrases
 
+        # calculate matches count
         skills_count = len(skills_phrases)
         work_env_count = len(work_env_phrases)
         coding_lang_count = len(coding_lang_phrases)
@@ -87,6 +90,7 @@ def get_statistics_for_biased_phrases():
         nlp_count = len(nlp_phrases)
         total_matches_count = skills_count + work_env_count + coding_lang_count + education_count + experience_count + nlp_count
 
+        # add the job description results to dataframe
         results_df = results_df.append({'job_description': description, 'job_desc_line_count': row['matches']['job_desc_line_count'],
                                         'skills_phrases': skills_phrases if skills_count > 0 else "-", 'skills_count': skills_count,
                                         'work_env_phrases': work_env_phrases if work_env_count > 0 else "-", 'work_env_count': work_env_count,
