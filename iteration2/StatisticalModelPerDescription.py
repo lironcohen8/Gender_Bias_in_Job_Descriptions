@@ -103,10 +103,10 @@ def get_statistics_for_biased_phrases():
 
     # save the results to a new Excel file
     column_order = ['description', 'job_desc_line_count', 'skills_phrases', 'skills_count', 'work_env_phrases', 'work_env_count', 'coding_lang_phrases',
-                    "coding_lang_count", 'education_phrases', 'education_count', 'experience_phrases', 'experience_count', 'advantage_phrases',
+                    'coding_lang_count', 'education_phrases', 'education_count', 'experience_phrases', 'experience_count', 'advantage_phrases',
                     'advantage_count', 'disclaimer_phrases', 'disclaimer_count', 'nlp_additional_phrases', 'nlp_additional_count', 'total_count']
     results_df.to_excel("bias_analysis_results_per_job_description.xlsx", columns=column_order)
-    print("done!")
+    print("Results saved to bias_analysis_results_per_job_description.xlsx")
 
 
 if __name__ == "__main__":
