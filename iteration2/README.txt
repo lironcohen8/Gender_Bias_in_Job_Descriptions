@@ -1,0 +1,2 @@
+The StatisticalModelPerPhrase module is based on the results of the StatisticalModelPerDescription module.
+If you want updated results, run StatisticalModelPerDescription and then run StatisticalModelPerPhrase.
