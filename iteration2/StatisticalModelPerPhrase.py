@@ -14,10 +14,12 @@ temp_df = pd.DataFrame()
 # create two sets of all the phrases in the Excel
 temp_df['exact_biased_phrases'] = bias_df.apply(lambda row: [(phrase, category) for category in exact_categories for phrase in (ast.literal_eval(row[category]) if row[category] != '-' else set())], axis=1)
 temp_df['similar_biased_phrases'] = bias_df.apply(lambda row: [(phrase, category) for category in similar_categories for phrase in (ast.literal_eval(row[category]) if row[category] != '-' else set())], axis=1)
-exact_biased_phrases = temp_df['exact_biased_phrases'].iloc[0]
-exact_biased_phrases_set = set(exact_biased_phrases)
-similar_biased_phrases = temp_df['similar_biased_phrases'].iloc[0]
-similar_biased_phrases_set = set(similar_biased_phrases)
+exact_biased_phrases_set = set()
+for phrases in temp_df['exact_biased_phrases']:
+    exact_biased_phrases_set.update(phrases)
+similar_biased_phrases_set = set()
+for phrases in temp_df['similar_biased_phrases']:
+    similar_biased_phrases_set.update(phrases)
 
 # Create new columns to indicate whether each row contains each phrase
 for phrase, category in exact_biased_phrases_set:
@@ -42,7 +44,10 @@ total_rows = len(bias_df)
 # Add a new column to the counts_df DataFrame containing the percentage of rows that contain each phrase
 results_df['percentage'] = results_df['count'] / total_rows * 100
 
+# Order the result by count descending
+results_df_sorted = results_df.sort_values(by='count', ascending=False)
+
 # save the results to a new Excel file
 column_order = ['phrase', 'count', 'percentage', 'category', 'is_original']
-results_df.to_excel("bias_analysis_results_per_phrase.xlsx", columns=column_order)
+results_df_sorted.to_excel("bias_analysis_results_per_phrase.xlsx", columns=column_order)
 print("Results saved to bias_analysis_results_per_phrase.xlsx")
