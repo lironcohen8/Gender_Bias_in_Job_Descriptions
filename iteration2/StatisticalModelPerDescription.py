@@ -18,10 +18,10 @@ except:
     STOPWORDS = set(stopwords.words('english'))
 
 # read in the job descriptions excel
-df = pd.read_excel("job_descriptions.xlsx")
+df = pd.read_excel("job_descriptions_linkedin.xlsx")
 
 # read in the biased phrases excel
-bias_df = pd.read_excel("biased_keywords.xlsx")
+bias_df = pd.read_excel("biased_phrases.xlsx")
 
 # convert to lowercase
 bias_df['phrase'] = bias_df['phrase'].str.lower()
