@@ -37,13 +37,13 @@ def get_job_desc_statistics_for_biased_phrases(description):
     matches = {'skills': [], 'work_env': [], 'nlp_phrases': [], 'education': [], 'coding_lang': [], 'experience': [], 'advantage': [], 'disclaimer': [], 'job_desc_line_count': 0}
 
     for phrase in exact_biased_phrases:
+        category = bias_df[bias_df['phrase'] == phrase]['category'].values[0]  # very inefficient
         if phrase.lower() in description:
-            category = bias_df[bias_df['phrase'] == phrase]['category'].values[0]  # very inefficient
             matches[category].append(phrase)
         else:
             closest_match = difflib.get_close_matches(phrase, desc_tokens, n=1, cutoff=0.8)
             if closest_match and closest_match[0] not in STOPWORDS:
-                matches['nlp_phrases'].append(closest_match[0])
+                matches['nlp_phrases'].append(f"{closest_match[0]}({category})")
 
     matches['job_desc_line_count'] = len(description.split('\n'))
     return matches
@@ -91,7 +91,7 @@ def get_statistics_for_biased_phrases():
         total_matches_count = skills_count + work_env_count + coding_lang_count + education_count + experience_count + nlp_count
 
         # add the job description results to dataframe
-        results_df = results_df.append({'job_description': description, 'job_desc_line_count': row['matches']['job_desc_line_count'],
+        results_df = results_df.append({'description': description, 'job_desc_line_count': row['matches']['job_desc_line_count'],
                                         'skills_phrases': skills_phrases if skills_count > 0 else "-", 'skills_count': skills_count,
                                         'work_env_phrases': work_env_phrases if work_env_count > 0 else "-", 'work_env_count': work_env_count,
                                         'coding_lang_phrases': coding_lang_phrases if coding_lang_count > 0 else "-", "coding_lang_count": coding_lang_count,
@@ -104,7 +104,8 @@ def get_statistics_for_biased_phrases():
     # save the results to a new Excel file
     column_order = ['description', 'job_desc_line_count', 'skills_phrases', 'skills_count', 'work_env_phrases', 'work_env_count', 'coding_lang_phrases',
                     'coding_lang_count', 'education_phrases', 'education_count', 'experience_phrases', 'experience_count', 'advantage_phrases',
-                    'advantage_count', 'disclaimer_phrases', 'disclaimer_count', 'nlp_additional_phrases', 'nlp_additional_count', 'total_count']
+                    'advantage_count', 'disclaimer_phrases', 'disclaimer_count', 'nlp_additional_phrases', 'nlp_additional_count', 'total_matches_count']
+    
     results_df.to_excel("bias_analysis_results_per_job_description.xlsx", columns=column_order)
     print("Results saved to bias_analysis_results_per_job_description.xlsx")
 
