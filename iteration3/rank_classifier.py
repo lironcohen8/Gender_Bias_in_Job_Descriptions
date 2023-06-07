@@ -13,6 +13,10 @@ import pickle
 count_vect = CountVectorizer()
 tfidf_transformer = TfidfTransformer()
 
+url = 'https://drive.google.com/uc?id=1BRYal9JVBF5DNji0Bh2Vjtf5MEpwv8Tx'
+output = 'new_data.csv'
+model_filename = 'rank_prediction_model.pkl'
+
 def download_file(url, output):
     try:
         gdown.download(url, output, quiet=False)
@@ -66,7 +70,7 @@ def create_heatmap(cm_normalized, labels):
     plt.show()
 
 
-def predict_rank(sentence, clf):
+def predict_sentence_rank(sentence, clf):
     # Preprocess the input sentence
     sentence_counts = count_vect.transform([sentence])
     sentence_tfidf = tfidf_transformer.transform(sentence_counts)
@@ -77,15 +81,10 @@ def predict_rank(sentence, clf):
     return predicted_rank[0]
 
 
-def main():
-    # Constants and configuration variables
-    url = 'https://drive.google.com/uc?id=1BRYal9JVBF5DNji0Bh2Vjtf5MEpwv8Tx'
-    output = 'new_data.csv'
-    model_filename = 'rank_prediction_model.pkl'
-    
+def train_model_and_create_heatmap():
     # Download the file
     download_file(url, output)
-    
+
     # Read the data
     df = pd.read_csv('new_data.csv')
     df.head()
@@ -126,11 +125,30 @@ def main():
     # Create the heatmap
     create_heatmap(cm_resampled_normalized, labels)
 
-    # Example usage: Predict rank for a sentence
-    example_sentence = "This is a test sentence."
+
+def main():
+    df = pd.read_excel('job_descriptions_linkedin.xlsx')
+    description_ranks = []
     loaded_clf = load_model(model_filename)
-    predicted_rank = predict_rank(example_sentence, loaded_clf)
-    print("Predicted Rank:", predicted_rank)
+
+    try:
+        for description in df['description']:
+            sentences = description.replace('\n', '.').split('.')
+            sentence_ranks = []
+
+            for sentence in sentences:
+                sentence = sentence.strip()
+                if len(sentence.split()) > 4:
+                    sentence_rank = predict_sentence_rank(sentence, loaded_clf)
+                    sentence_ranks.append(sentence_rank)
+            description_rank = sum(sentence_ranks) / len(sentence_ranks)
+            description_ranks.append(description_rank)
+
+        df['description_rank'] = description_ranks
+        df.to_excel('job_descriptions_ranks.xlsx', index=False)
+
+    except:
+        print("Exception occurred.")
 
 
 if __name__ == '__main__':
