@@ -19,7 +19,7 @@ for description in df['description']:
                 # Add the sentence to the DataFrame
                 sentences_df = sentences_df.append({'Sentence': '"'+sentence+'"\n'}, ignore_index=True)
     except:
-        print(f"Exception occurred.")
+        print("Exception occurred.")
 
 # Save the sentences to a new Excel file
 sentences_df.to_excel('job_descriptions_sentences.xlsx', index=False)
