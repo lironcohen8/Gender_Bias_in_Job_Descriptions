@@ -125,11 +125,14 @@ def train_model_and_create_heatmap():
     # Create the heatmap
     create_heatmap(cm_resampled_normalized, labels)
 
+    return clf_resampled
+
 
 def main():
     df = pd.read_excel('job_descriptions_linkedin.xlsx')
     description_ranks = []
-    loaded_clf = load_model(model_filename)
+    loaded_clf = train_model_and_create_heatmap()
+    # loaded_clf = load_model(model_filename)
 
     try:
         for description in df['description']:
@@ -142,6 +145,7 @@ def main():
                     sentence_rank = predict_sentence_rank(sentence, loaded_clf)
                     sentence_ranks.append(sentence_rank)
             description_rank = sum(sentence_ranks) / len(sentence_ranks)
+            description_rank = round(description_rank, 3)
             description_ranks.append(description_rank)
 
         df['description_rank'] = description_ranks
