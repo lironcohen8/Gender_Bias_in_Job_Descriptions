@@ -80,6 +80,78 @@ def predict_sentence_rank(sentence, clf):
 
     return predicted_rank[0]
 
+def plot_class_distribution(y):
+    class_counts = y.value_counts()
+    class_labels = class_counts.index
+
+    plt.figure()
+    ax = sns.barplot(x=class_labels, y=class_counts)
+    plt.xlabel('Class')
+    plt.ylabel('Count')
+    plt.title('Class Distribution')
+    
+    # Add numbers on the bars
+    for i, count in enumerate(class_counts):
+        ax.text(i, count, str(count), ha='center', va='bottom', fontsize=10)
+    
+    plt.show()
+
+def plot_precision_recall_curve(clf, X_test_tfidf, y_test):
+    precision = dict()
+    recall = dict()
+    thresholds = dict()
+
+    # Calculate precision and recall for each class
+    for i, class_label in enumerate(clf.classes_):
+        class_index = np.where(clf.classes_ == class_label)[0][0]
+        y_test_binary = np.where(y_test == class_label, 1, 0)
+        probabilities = clf.predict_proba(X_test_tfidf)[:, class_index]
+        precision[class_label], recall[class_label], thresholds[class_label] = precision_recall_curve(
+            y_test_binary, probabilities
+        )
+
+        # Plot the precision-recall curve for the class
+        plt.step(recall[class_label], precision[class_label], where='post', label=f'Class {class_label}')
+
+    # Plot the mean precision-recall curve
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.title('Precision-Recall Curve')
+    plt.legend(loc='best')
+    plt.show()
+
+def plot_roc_curve(clf, X_test_tfidf, y_test):
+    predicted = clf.predict(X_test_tfidf)
+    accuracy = metrics.accuracy_score(y_test, predicted)
+    print("Accuracy:", accuracy)
+
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+
+    plt.figure()  # Create a single figure to hold all ROC curves
+
+    # Calculate FPR, TPR, and AUC for each class
+    for i, class_label in enumerate(clf.classes_):
+        class_index = np.where(clf.classes_ == class_label)[0][0]
+        y_test_binary = np.where(y_test == class_label, 1, 0)
+        probabilities = clf.predict_proba(X_test_tfidf)[:, class_index]
+
+        # Calculate FPR, TPR, and AUC for ROC curve
+        fpr[class_label], tpr[class_label], _ = roc_curve(y_test_binary, probabilities)
+        roc_auc[class_label] = auc(fpr[class_label], tpr[class_label])
+
+        # Plot ROC curve on the same figure
+        plt.plot(fpr[class_label], tpr[class_label], label=f'Class {class_label} (AUC = {roc_auc[class_label]:.2f})')
+
+    plt.plot([0, 1], [0, 1], color='navy', linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('ROC Curve')
+    plt.legend(loc="lower right")
+    plt.show()
 
 def train_model_and_create_heatmap():
     # Download the file
@@ -88,6 +160,9 @@ def train_model_and_create_heatmap():
     # Read the data
     df = pd.read_csv('new_data.csv')
     df.head()
+
+    # Bar Plot of Class Distribution
+    plot_class_distribution(df['rank'])
 
     # Train-test split
     X_train, X_test, y_train, y_test = train_test_split(df['Sentence'], df['rank'], random_state=0)
@@ -117,6 +192,9 @@ def train_model_and_create_heatmap():
     # Evaluate the classifier
     predicted_resampled = evaluate_classifier(clf_resampled, X_test_tfidf, y_test)
 
+    # Plot Precision-Recall curve
+    plot_precision_recall_curve(clf_resampled, X_test_tfidf, y_test)
+
     # Create the confusion matrix
     cm_resampled = confusion_matrix(y_test, predicted_resampled)
     cm_resampled_normalized = cm_resampled.astype('float') / cm_resampled.sum(axis=1)[:, np.newaxis]
@@ -124,6 +202,9 @@ def train_model_and_create_heatmap():
 
     # Create the heatmap
     create_heatmap(cm_resampled_normalized, labels)
+
+    # Plot ROC curve
+    plot_roc_curve(clf_resampled, X_test_tfidf, y_test)
 
     return clf_resampled
 
